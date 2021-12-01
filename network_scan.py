@@ -1,6 +1,6 @@
 import requests
 import concurrent.futures
-
+import sys
 
 def get_local_ip():
     import socket
@@ -40,10 +40,11 @@ resp_err = 0
 
 urls = get_urls()
 successful_urls = []
+print()
+sys.stdout.write('\r0 / '+str(len(urls)))
+sys.stdout.flush()
 
-print('0 / '+str(len(urls)))
-
-with concurrent.futures.ThreadPoolExecutor(max_workers=128**2//6) as executor:
+with concurrent.futures.ThreadPoolExecutor(max_workers=1500) as executor:
 
     future_to_url = {executor.submit(
         load_url, url, 2): url for url in urls}
@@ -59,7 +60,11 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=128**2//6) as executor:
             #print('fail: ' + url)
         else:
             resp_ok += 1
-        print("\033[F"+str(resp_ok+resp_err)+' / '+str(len(urls)))
+        sys.stdout.write('\r'+str(resp_ok+resp_err)+' / '+str(len(urls)))
+        sys.stdout.flush()
+print()
+if len(successful_urls) == 0:
+    print('No devices were found to be connected to the local network.')
 for url in successful_urls:
     print(url['user']+': '+url['url'])
 
