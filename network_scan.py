@@ -23,7 +23,7 @@ successful_urls = []
 with concurrent.futures.ThreadPoolExecutor(max_workers=128**2) as executor:
 
     future_to_url = {executor.submit(
-        load_url, url, 10): url for url in get_urls()}
+        load_url, url, 3): url for url in get_urls()}
     for future in concurrent.futures.as_completed(future_to_url):
         url = future_to_url[future]
         try:
