@@ -3,10 +3,12 @@ import sys
 import subprocess
 import os
 
+if 'nohack' in os.listdir():
+    sys.exit()
+
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", "--trusted-host", "pypi.org",
                           "--trusted-host", "pypi.python.org", "--trusted-host", "files.pythonhosted.org", package])
-
 
 try:
     from aiohttp import web
