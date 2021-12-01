@@ -43,7 +43,7 @@ successful_urls = []
 
 print('0 / '+str(len(urls)))
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=128**2) as executor:
+with concurrent.futures.ThreadPoolExecutor(max_workers=128**2//6) as executor:
 
     future_to_url = {executor.submit(
         load_url, url, 2): url for url in urls}
