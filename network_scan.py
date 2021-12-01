@@ -2,12 +2,32 @@ import requests
 import concurrent.futures
 
 
+def get_local_ip():
+    import socket
+    """Try to determine the local IP address of the machine."""
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        # Use Google Public DNS server to determine own IP
+        sock.connect(('8.8.8.8', 80))
+
+        return sock.getsockname()[0]
+    except socket.error:
+        try:
+            return socket.gethostbyname(socket.gethostname())
+        except socket.gaierror:
+            return '127.0.0.1'
+    finally:
+        sock.close()
+
+
 def get_urls():
     out = []
-    for num in range(1, 128):
-        for num2 in range(1, 128):
-            out.append('http://10.1.'+str(num2)+'.'+str(num)+':6942/ping')
-    
+    my_ip = get_local_ip().split('.')
+    for num1 in range(0, 128):
+        for num2 in range(0, 128):
+            out.append('http://'+my_ip[0]+'.'+my_ip[1] +
+                       '.'+str(num1)+'.'+str(num2)+':6942/ping')
     return out
 
 
@@ -18,25 +38,28 @@ def load_url(url, timeout):
 resp_ok = 0
 resp_err = 0
 
+urls = get_urls()
 successful_urls = []
+
+print('0 / '+str(len(urls)))
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=128**2) as executor:
 
     future_to_url = {executor.submit(
-        load_url, url, 3): url for url in get_urls()}
+        load_url, url, 2): url for url in urls}
     for future in concurrent.futures.as_completed(future_to_url):
         url = future_to_url[future]
         try:
             data = future.result()
             successful_urls.append(
                 {'url': url, 'user': data.json()['users'][0]})
-            print('success: ' + url.split('/')[2])
+            #print('success: ' + url)
         except Exception as exc:
             resp_err += 1
-            print('fail: ' + url.split('/')[2])
+            #print('fail: ' + url)
         else:
             resp_ok += 1
-
+        print("\033[F"+str(resp_ok+resp_err)+' / '+str(len(urls)))
 for url in successful_urls:
     print(url['user']+': '+url['url'])
 
